@@ -26,13 +26,14 @@ public class InputHandler {
     private List<String> elementNames = Arrays.asList("depositBalance" , "durationInDay" , "customerNumber" , "depositType");
     public InputHandler(String pathFile){
         this.pathFile = pathFile;
+
+        for (int i = 0 ; i < elementNames.size() ; ++i){
+            elementNames.set(i , elementNames.get(i).toLowerCase());
+        }
     }
 
     public ArrayList<Object> parse(){
-        boolean findBalance = false;
-        boolean findDurationInDay = false;
-        boolean findCustomerNumber = false;
-        boolean findDepositType = false;
+        boolean findElement = false;
         boolean startFile = false;
 
         try {
@@ -47,44 +48,27 @@ public class InputHandler {
                     case XMLStreamConstants.START_ELEMENT:
                         StartElement startElement = event.asStartElement();
                         String localPart = startElement.getName().getLocalPart();
+
                         if (localPart.equalsIgnoreCase("deposit")) {
                             System.out.println("Start Element : deposit");
-                        } else if (localPart.equalsIgnoreCase("depositBalance")) {
-                            findBalance = true;
-                        } else if (localPart.equalsIgnoreCase("durationInDay")) {
-                            findDurationInDay = true;
-                        } else if (localPart.equalsIgnoreCase("customerNumber")) {
-                            findCustomerNumber = true;
-                        }else if (localPart.equalsIgnoreCase("depositType")) {
-                            findDepositType = true;
+                        } else if(elementNames.contains(localPart.toLowerCase())){
+                            findElement = true;
                         }
-                        if(localPart.equalsIgnoreCase("deposits")){
+                        else if(localPart.equalsIgnoreCase("deposits")){
                             startFile = true;
                         }
                         else{
                             System.out.println("here");
                         }
                         break;
+
+
                     case XMLStreamConstants.CHARACTERS:
                         Characters characters = event.asCharacters();
-                        if(findBalance){
-                            System.out.println("Balance : "
+                        if(findElement){
+                            System.out.println(elementName
                                     + characters.getData());
-                            findBalance = false;
-                        }
-                        if(findDurationInDay){
-                            System.out.println("Duration In Day: " + characters.getData());
-                            findDurationInDay = false;
-                        }
-                        if(findCustomerNumber){
-                            System.out.println("Customer Number: "
-                                    + characters.getData());
-                            findCustomerNumber = false;
-                        }
-                        if(findDepositType){
-                            System.out.println("Deposit Type: "
-                                    + characters.getData());
-                            findDepositType = false;
+                            findElement = false;
                         }
                         break;
                     case  XMLStreamConstants.END_ELEMENT:
