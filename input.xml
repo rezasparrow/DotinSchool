@@ -23,10 +23,10 @@
             ShortTerm
         </depositType>
         <depositBalance>
-            20000
+            2000000000000000000
         </depositBalance>
         <durationInDays>
-            -25
+            25
         </durationInDays>
     </deposit>
 

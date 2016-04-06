@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -20,7 +21,7 @@ import java.util.List;
  */
 public class Main {
 
-    private void sortDeposits(List<Object> deposits) {
+    private static void sortDeposits(List<Object> deposits) {
         Collections.sort(deposits, Collections.reverseOrder(new Comparator<Object>() {
             @Override
             public int compare(Object firstObject, Object secondObject) {
@@ -47,11 +48,11 @@ public class Main {
 
     public static void main(String[] args)
             throws NoSuchMethodException,
-            InstantiationException, IllegalAccessException{
+            InstantiationException, IllegalAccessException, InvocationTargetException {
 
         InputHandler inputHandler = new InputHandler("input.xml");
 
-        List<Object> deposits = null;
+        List<Object> deposits = new ArrayList<Object>();
         try {
             deposits = inputHandler.parse();
         }catch (FileFormatException e){
@@ -59,6 +60,7 @@ public class Main {
             return;
         }
 
+        sortDeposits(deposits);
         try{
 
             File file = new File("output.txt");

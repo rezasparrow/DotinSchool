@@ -143,7 +143,7 @@ public class InputHandler {
                                 throw new FileFormatException("File format is invalid\n" +
                                                                 "deposit type is invalid");
                             } catch (InvocationTargetException e){
-                                throw new FileFormatException(e.getMessage());
+                                throw new FileFormatException(e.getTargetException().getMessage());
                             }
                             depositData.clear();
                         }
