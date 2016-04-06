@@ -1,5 +1,7 @@
 package com.company;
+
 import javafx.util.Pair;
+import util.FileFormatException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -11,7 +13,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
@@ -19,17 +20,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import util.ArgumentOutOfBoundsException;
-import util.FileFormatException;
-
 
 /**
  * Created by Dotin School1 on 4/4/2016.
  */
-public class InputHandler {
+public class XmlDepositParser {
     private String pathFile;
     private List<String> attributesName = Arrays.asList("depositBalance" , "durationInDays" , "customerNumber" , "depositType");
-    public InputHandler(String pathFile){
+    public XmlDepositParser(String pathFile){
         this.pathFile = pathFile;
     }
 
@@ -46,16 +44,13 @@ public class InputHandler {
                 }
             }
             if(!findAttribute){
-                throw new FileFormatException("File format is invalid\n " +attributeName + "tag can not be find in this deposit tag");
+                throw new FileFormatException("File format is invalid\n " + attributeName + "tag can not be find in this deposit tag");
             }
         }
 
     }
 
-    private Object getObject(ArrayList<Pair<String, String>> attributes)
-            throws FileFormatException, ClassNotFoundException, NoSuchMethodException, ArgumentOutOfBoundsException,
-            IllegalAccessException, InvocationTargetException, InstantiationException
-            {
+    private Object getObject(ArrayList<Pair<String, String>> attributes) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         BigDecimal balance = null;
         int durationInDay = 0;
         Integer customerNumber = null;
@@ -75,12 +70,9 @@ public class InputHandler {
                 depositType = attribute.getValue();
             }
         }
-
         Class cls = Class.forName("com.company." + depositType + "Deposit");
-        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class, int.class, int.class});
-
-        return constructor.newInstance(balance, durationInDay, customerNumber);
-
+        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class , int.class , int.class});
+        return constructor.newInstance(balance , durationInDay , customerNumber);
     }
 
 
@@ -137,14 +129,7 @@ public class InputHandler {
                         if(endElement.getName().getLocalPart().equalsIgnoreCase("deposit"))
                         {
                             validateData(depositData);
-                            try {
-                                objects.add(getObject(depositData));
-                            } catch (ClassNotFoundException e){
-                                throw new FileFormatException("File format is invalid\n" +
-                                                                "deposit type is invalid");
-                            } catch (ArgumentOutOfBoundsException e){
-                                throw new FileFormatException(e.getMessage());
-                            }
+                            objects.add(getObject(depositData));
                             depositData.clear();
                         }
                         break;
@@ -154,6 +139,9 @@ public class InputHandler {
             e.printStackTrace();
         } catch (XMLStreamException e) {
             e.printStackTrace();
+        }catch (ClassNotFoundException e)
+        {
+            throw new FileFormatException("file format is invalid\n deposit type is invalid");
         }
         return objects;
     }
