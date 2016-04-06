@@ -12,6 +12,8 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +27,7 @@ import util.FileFormatException;
  */
 public class InputHandler {
     private String pathFile;
-    private List<String> attributesName = Arrays.asList("depositBalance" , "durationInDay" , "customerNumber" , "depositType");
+    private List<String> attributesName = Arrays.asList("depositBalance" , "durationInDays" , "customerNumber" , "depositType");
     public InputHandler(String pathFile){
         this.pathFile = pathFile;
     }
@@ -33,8 +35,9 @@ public class InputHandler {
     private void validateData (ArrayList<Pair<String , String>> attributes) throws FileFormatException {
         boolean findAttribute = false;
         for(String attributeName : attributesName){
+            findAttribute = false;
             for(Pair<String , String> attribute : attributes){
-                if(attribute.getKey().equals(attributeName)){
+                if(attribute.getKey().toString().equals(attributeName)){
                     if(findAttribute){
                         throw new FileFormatException("File format is invalid");
                     }
@@ -48,18 +51,17 @@ public class InputHandler {
 
     }
 
-    private void convertToDeposit(ArrayList<Pair<String , String>> attributes)
-    {
-        BigDecimal balance;
-        int durationInDay;
-        Integer customerNumber;
+    private Object getObject(ArrayList<Pair<String, String>> attributes) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        BigDecimal balance = null;
+        int durationInDay = 0;
+        Integer customerNumber = null;
         String depositType = "";
 
         for(Pair<String , String> attribute : attributes){
             if(attribute.getKey().equals("depositBalance")){
                 balance = new BigDecimal(attribute.getValue());
             }
-            else if(attribute.getKey().equals("durationInDay")){
+            else if(attribute.getKey().equals("durationInDays")){
                 durationInDay = Integer.parseInt(attribute.getValue());
             }
             else if(attribute.getKey().equals("customerNumber")){
@@ -69,11 +71,18 @@ public class InputHandler {
                 depositType = attribute.getValue();
             }
         }
+        Class cls = Class.forName("com.company." + depositType + "Deposit");
+        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class , int.class , int.class});
+        return constructor.newInstance(balance , durationInDay , customerNumber);
     }
 
 
-    public ArrayList<Object> parse() throws FileFormatException {
-        List<Deposit> deposits = new ArrayList<Deposit>();
+
+    public List<Object> parse()
+            throws FileFormatException, IllegalAccessException ,
+            NoSuchMethodException, InvocationTargetException,
+            InstantiationException {
+        List<Object> objects = new ArrayList<Object>();
         boolean findElement = false;
         boolean startFile = false;
         boolean findStartDepositTag = false;
@@ -95,6 +104,7 @@ public class InputHandler {
                         if (localPart.equals("deposit")) {
                             findStartDepositTag = true;
                         } else if(attributesName.contains(localPart)){
+                            elementName = localPart;
                             findElement = true;
                         }
                         else if(localPart.equals("deposits")){
@@ -109,14 +119,20 @@ public class InputHandler {
                     case XMLStreamConstants.CHARACTERS:
                         Characters characters = event.asCharacters();
                         if(findElement){
-                            depositData.add(new Pair<String, String>(elementName , characters.getData()));
+                            depositData.add(new Pair<String, String>(elementName , characters.getData().trim()));
                             findElement = false;
                         }
                         break;
+
+
                     case  XMLStreamConstants.END_ELEMENT:
                         EndElement endElement = event.asEndElement();
-                        validateData(depositData);
-
+                        if(endElement.getName().getLocalPart().equalsIgnoreCase("deposit"))
+                        {
+                            validateData(depositData);
+                            objects.add(getObject(depositData));
+                            depositData.clear();
+                        }
                         break;
                 }
             }
@@ -124,7 +140,10 @@ public class InputHandler {
             e.printStackTrace();
         } catch (XMLStreamException e) {
             e.printStackTrace();
+        }catch (ClassNotFoundException e)
+        {
+            throw new FileFormatException("file format is invalid");
         }
-        return null;
+        return objects;
     }
 }

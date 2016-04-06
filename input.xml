@@ -10,9 +10,9 @@
         <depositBalance>
             20000
         </depositBalance>
-        <durationInDay>
+        <durationInDays>
             25
-        </durationInDay>
+        </durationInDays>
     </deposit>
 
     <deposit>
@@ -25,9 +25,9 @@
         <depositBalance>
             145000
         </depositBalance>
-        <durationInDay>
+        <durationInDays>
             38
-        </durationInDay>
+        </durationInDays>
     </deposit>
 
     <deposit>
@@ -40,8 +40,8 @@
         <depositBalance>
             545966600000
         </depositBalance>
-        <durationInDay>
+        <durationInDays>
             1000
-        </durationInDay>
+        </durationInDays>
     </deposit>
 </deposits>

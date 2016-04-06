@@ -1,13 +1,15 @@
 package com.company;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
 
 import util.ArgumentOutOfBoundsException;
 
 /**
  * Created by Dotin School1 on 4/4/2016.
  */
-public abstract class Deposit {
+public abstract class Deposit implements Comparable<Deposit> {
     private BigDecimal balance;
     private int durationInDay;
     private float interestRate;
@@ -48,7 +50,8 @@ public abstract class Deposit {
 
     public BigDecimal payedInterest(){
         BigDecimal multiplyResult =  balance.multiply(new BigDecimal(durationInDay) ).multiply(new BigDecimal(getInterestRate()));
-        return multiplyResult.divide(new BigDecimal(35600) );
+        BigDecimal result = multiplyResult.divide(new BigDecimal("35600") , 4 , RoundingMode.HALF_UP );
+        return result;
     }
 
     public abstract float getInterestRate();
@@ -60,4 +63,10 @@ public abstract class Deposit {
     public void setCustomerNumber(Integer customerNumber) {
         this.customerNumber = customerNumber;
     }
+
+    @Override
+    public int compareTo(Deposit first ) {
+        return this.payedInterest().compareTo(first.payedInterest());
+    }
+
 }

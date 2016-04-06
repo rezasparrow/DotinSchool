@@ -17,4 +17,6 @@ public class LongTermDeposit extends Deposit {
     public float getInterestRate() {
         return 20;
     }
+
+
 }
