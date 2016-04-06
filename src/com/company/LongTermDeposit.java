@@ -15,7 +15,7 @@ public class LongTermDeposit extends Deposit {
 
     @Override
     public float getInterestRate() {
-        return 20;
+        return 20f;
     }
 
 
