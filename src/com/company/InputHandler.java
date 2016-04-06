@@ -53,7 +53,7 @@ public class InputHandler {
     }
 
     private Object getObject(ArrayList<Pair<String, String>> attributes)
-            throws FileFormatException, ClassNotFoundException, NoSuchMethodException, ArgumentOutOfBoundsException,
+            throws FileFormatException, ClassNotFoundException, NoSuchMethodException,
             IllegalAccessException, InvocationTargetException, InstantiationException
             {
         BigDecimal balance = null;
@@ -87,7 +87,7 @@ public class InputHandler {
 
     public List<Object> parse()
             throws FileFormatException, IllegalAccessException ,
-            NoSuchMethodException, InvocationTargetException,
+            NoSuchMethodException,
             InstantiationException {
         List<Object> objects = new ArrayList<Object>();
         boolean findElement = false;
@@ -142,7 +142,7 @@ public class InputHandler {
                             } catch (ClassNotFoundException e){
                                 throw new FileFormatException("File format is invalid\n" +
                                                                 "deposit type is invalid");
-                            } catch (ArgumentOutOfBoundsException e){
+                            } catch (InvocationTargetException e){
                                 throw new FileFormatException(e.getMessage());
                             }
                             depositData.clear();

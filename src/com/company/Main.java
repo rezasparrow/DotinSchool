@@ -45,33 +45,46 @@ public class Main {
         }));
     }
 
-    public static void main(String[] args) throws InvocationTargetException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException,
-            FileFormatException, ArgumentOutOfBoundsException, IOException {
+    public static void main(String[] args)
+            throws NoSuchMethodException,
+            InstantiationException, IllegalAccessException{
+
         InputHandler inputHandler = new InputHandler("input.xml");
 
-        List<Object> deposits = inputHandler.parse();
-
-        File file = new File("output.txt");
-        // creates the file
-        file.createNewFile();
-
-        // creates a FileWriter Object
-        FileWriter writer = new FileWriter(file);
-        for (Object deposit : deposits) {
-            Method payedInterest = deposit.getClass().getSuperclass().getDeclaredMethod("payedInterest", new Class[]{});
-            BigDecimal profit = (BigDecimal) payedInterest.invoke(deposit, null);
-
-            Method getCustomerNumber = deposit.getClass().getSuperclass().getDeclaredMethod("getCustomerNumber", new Class[]{});
-            Integer customerNumber = (Integer) getCustomerNumber.invoke(deposit, null);
-
-            // Writes the content to the file
-            writer.write(customerNumber + "#" + profit + "\n");
-
+        List<Object> deposits = null;
+        try {
+            deposits = inputHandler.parse();
+        }catch (FileFormatException e){
+            System.out.println(e.getMessage());
+            return;
         }
 
-        writer.flush();
-        writer.close();
+        try{
+
+            File file = new File("output.txt");
+            // creates the file
+            file.createNewFile();
+
+            // creates a FileWriter Object
+            FileWriter writer = new FileWriter(file);
+            for (Object deposit : deposits) {
+                Method payedInterest = deposit.getClass().getSuperclass().getDeclaredMethod("payedInterest", new Class[]{});
+                BigDecimal profit = (BigDecimal) payedInterest.invoke(deposit, null);
+
+                Method getCustomerNumber = deposit.getClass().getSuperclass().getDeclaredMethod("getCustomerNumber", new Class[]{});
+                Integer customerNumber = (Integer) getCustomerNumber.invoke(deposit, null);
+
+                // Writes the content to the file
+                writer.write(customerNumber + "#" + profit + "\n");
+
+            }
+
+            writer.flush();
+            writer.close();
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+
 
     }
 }
