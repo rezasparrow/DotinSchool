@@ -1,4 +1,6 @@
 package com.company;
+import javafx.util.Pair;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -9,9 +11,13 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import util.FileFormatException;
 
 
 /**
@@ -19,18 +25,58 @@ import java.util.List;
  */
 public class InputHandler {
     private String pathFile;
-    private List<String> elementNames = Arrays.asList("depositBalance" , "durationInDay" , "customerNumber" , "depositType");
+    private List<String> attributesName = Arrays.asList("depositBalance" , "durationInDay" , "customerNumber" , "depositType");
     public InputHandler(String pathFile){
         this.pathFile = pathFile;
+    }
 
-        for (int i = 0 ; i < elementNames.size() ; ++i){
-            elementNames.set(i , elementNames.get(i).toLowerCase());
+    private void validateData (ArrayList<Pair<String , String>> attributes) throws FileFormatException {
+        boolean findAttribute = false;
+        for(String attributeName : attributesName){
+            for(Pair<String , String> attribute : attributes){
+                if(attribute.getKey().equals(attributeName)){
+                    if(findAttribute){
+                        throw new FileFormatException("File format is invalid");
+                    }
+                    findAttribute = true;
+                }
+            }
+            if(!findAttribute){
+                throw new FileFormatException("File format is invalid");
+            }
+        }
+
+    }
+
+    private void convertToDeposit(ArrayList<Pair<String , String>> attributes)
+    {
+        BigDecimal balance;
+        int durationInDay;
+        Integer customerNumber;
+        String depositType = "";
+
+        for(Pair<String , String> attribute : attributes){
+            if(attribute.getKey().equals("depositBalance")){
+                balance = new BigDecimal(attribute.getValue());
+            }
+            else if(attribute.getKey().equals("durationInDay")){
+                durationInDay = Integer.parseInt(attribute.getValue());
+            }
+            else if(attribute.getKey().equals("customerNumber")){
+                customerNumber = Integer.parseInt(attribute.getValue());
+            }
+            else if(attribute.getKey().equals("depositType")){
+                depositType = attribute.getValue();
+            }
         }
     }
 
-    public ArrayList<Object> parse(){
+
+    public ArrayList<Object> parse() throws FileFormatException {
+        List<Deposit> deposits = new ArrayList<Deposit>();
         boolean findElement = false;
         boolean startFile = false;
+        boolean findStartDepositTag = false;
 
         try {
             XMLInputFactory factory = XMLInputFactory.newInstance();
@@ -38,6 +84,7 @@ public class InputHandler {
                     factory.createXMLEventReader(
                             new FileReader(pathFile));
             String elementName = "";
+            ArrayList<Pair<String , String>> depositData = new ArrayList<Pair<String, String>>();
             while(eventReader.hasNext()){
                 XMLEvent event = eventReader.nextEvent();
                 switch(event.getEventType()){
@@ -45,16 +92,16 @@ public class InputHandler {
                         StartElement startElement = event.asStartElement();
                         String localPart = startElement.getName().getLocalPart();
 
-                        if (localPart.equalsIgnoreCase("deposit")) {
-                            System.out.println("Start Element : deposit");
-                        } else if(elementNames.contains(localPart.toLowerCase())){
+                        if (localPart.equals("deposit")) {
+                            findStartDepositTag = true;
+                        } else if(attributesName.contains(localPart)){
                             findElement = true;
                         }
-                        else if(localPart.equalsIgnoreCase("deposits")){
+                        else if(localPart.equals("deposits")){
                             startFile = true;
                         }
                         else{
-                            System.out.println("here");
+                            throw new FileFormatException("file format is invalid");
                         }
                         break;
 
@@ -62,18 +109,14 @@ public class InputHandler {
                     case XMLStreamConstants.CHARACTERS:
                         Characters characters = event.asCharacters();
                         if(findElement){
-                            System.out.println(elementName
-                                    + characters.getData());
+                            depositData.add(new Pair<String, String>(elementName , characters.getData()));
                             findElement = false;
                         }
                         break;
                     case  XMLStreamConstants.END_ELEMENT:
                         EndElement endElement = event.asEndElement();
-                        if(endElement.getName().getLocalPart().equalsIgnoreCase("deposit")){
-                            System.out.println("End Element : deposit");
-                            System.out.println();
-                            System.out.println();
-                        }
+                        validateData(depositData);
+
                         break;
                 }
             }

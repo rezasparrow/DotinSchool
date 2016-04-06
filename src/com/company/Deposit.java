@@ -1,8 +1,8 @@
 package com.company;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import exeption.ArgumentOutOfBoundsException;
+
+import util.ArgumentOutOfBoundsException;
 
 /**
  * Created by Dotin School1 on 4/4/2016.
@@ -11,12 +11,14 @@ public abstract class Deposit {
     private BigDecimal balance;
     private int durationInDay;
     private float interestRate;
+    private Integer customerNumber;
 
 
 
-    public Deposit(BigDecimal balance , int durationInDay) throws ArgumentOutOfBoundsException {
+    public Deposit(BigDecimal balance , int durationInDay , int customerNumber) throws ArgumentOutOfBoundsException {
         setBalance(balance);
         setDurationInDay(durationInDay);
+        setCustomerNumber(customerNumber);
     }
 
 
@@ -48,6 +50,14 @@ public abstract class Deposit {
         BigDecimal multiplyResult =  balance.multiply(new BigDecimal(durationInDay) ).multiply(new BigDecimal(getInterestRate()));
         return multiplyResult.divide(new BigDecimal(35600) );
     }
+
     public abstract float getInterestRate();
 
+    public Integer getCustomerNumber() {
+        return customerNumber;
+    }
+
+    public void setCustomerNumber(Integer customerNumber) {
+        this.customerNumber = customerNumber;
+    }
 }

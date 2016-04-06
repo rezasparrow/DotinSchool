@@ -1,4 +1,4 @@
-package exeption;
+package util;
 
 /**
  * Created by Dotin School1 on 4/4/2016.
