@@ -65,8 +65,8 @@ public abstract class Deposit implements Comparable<Deposit> {
     }
 
     @Override
-    public int compareTo(Deposit first ) {
-        return this.payedInterest().compareTo(first.payedInterest());
+    public int compareTo(Deposit deposit ) {
+        return this.payedInterest().compareTo(deposit.payedInterest());
     }
 
 }

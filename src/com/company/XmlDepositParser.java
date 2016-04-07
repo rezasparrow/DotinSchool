@@ -31,6 +31,9 @@ public class XmlDepositParser {
         this.pathFile = pathFile;
     }
 
+    /*
+    * validate the xml format
+    * */
     private void validateData (ArrayList<Pair<String , String>> attributes) throws FileFormatException {
         boolean findAttribute = false;
         for(String attributeName : attributesName){
