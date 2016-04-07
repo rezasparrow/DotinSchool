@@ -29,7 +29,7 @@ public class Main {
                 BigDecimal profitOne = null;
                 BigDecimal profitSecond = null;
                 try {
-                    payedInterest = firstObject.getClass().getSuperclass().getDeclaredMethod("payedInterest", new Class[]{});
+                    payedInterest = firstObject.getClass().getSuperclass().getDeclaredMethod("payedInterest");
                 } catch (NoSuchMethodException e) {
                     e.printStackTrace();
                 }
@@ -50,11 +50,11 @@ public class Main {
             throws NoSuchMethodException,
             InstantiationException, IllegalAccessException, InvocationTargetException {
 
-        InputHandler inputHandler = new InputHandler("input.xml");
+        XmlDepositParser  xmlDepositParser = new XmlDepositParser("input.xml");
 
-        List<Object> deposits = new ArrayList<Object>();
+        List<Object> deposits;
         try {
-            deposits = inputHandler.parse();
+            deposits = xmlDepositParser.parse();
         }catch (FileFormatException e){
             System.out.println(e.getMessage());
             return;
@@ -70,10 +70,10 @@ public class Main {
             // creates a FileWriter Object
             FileWriter writer = new FileWriter(file);
             for (Object deposit : deposits) {
-                Method payedInterest = deposit.getClass().getSuperclass().getDeclaredMethod("payedInterest", new Class[]{});
+                Method payedInterest = deposit.getClass().getSuperclass().getDeclaredMethod("payedInterest");
                 BigDecimal profit = (BigDecimal) payedInterest.invoke(deposit, null);
 
-                Method getCustomerNumber = deposit.getClass().getSuperclass().getDeclaredMethod("getCustomerNumber", new Class[]{});
+                Method getCustomerNumber = deposit.getClass().getSuperclass().getDeclaredMethod("getCustomerNumber");
                 Integer customerNumber = (Integer) getCustomerNumber.invoke(deposit, null);
 
                 // Writes the content to the file

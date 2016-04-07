@@ -1,7 +1,5 @@
 package com.company;
-
 import javafx.util.Pair;
-import util.FileFormatException;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -13,12 +11,16 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import util.ArgumentOutOfBoundsException;
+import util.FileFormatException;
 
 
 /**
@@ -31,9 +33,6 @@ public class XmlDepositParser {
         this.pathFile = pathFile;
     }
 
-    /*
-    * validate the xml format
-    * */
     private void validateData (ArrayList<Pair<String , String>> attributes) throws FileFormatException {
         boolean findAttribute = false;
         for(String attributeName : attributesName){
@@ -47,13 +46,16 @@ public class XmlDepositParser {
                 }
             }
             if(!findAttribute){
-                throw new FileFormatException("File format is invalid\n " + attributeName + "tag can not be find in this deposit tag");
+                throw new FileFormatException("File format is invalid\n " +attributeName + "tag can not be find in this deposit tag");
             }
         }
 
     }
 
-    private Object getObject(ArrayList<Pair<String, String>> attributes) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    private Object getObject(ArrayList<Pair<String, String>> attributes)
+            throws FileFormatException, ClassNotFoundException, NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException, InstantiationException
+    {
         BigDecimal balance = null;
         int durationInDay = 0;
         Integer customerNumber = null;
@@ -73,16 +75,19 @@ public class XmlDepositParser {
                 depositType = attribute.getValue();
             }
         }
+
         Class cls = Class.forName("com.company." + depositType + "Deposit");
-        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class , int.class , int.class});
-        return constructor.newInstance(balance , durationInDay , customerNumber);
+        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class, int.class, int.class});
+
+        return constructor.newInstance(balance, durationInDay, customerNumber);
+
     }
 
 
 
     public List<Object> parse()
             throws FileFormatException, IllegalAccessException ,
-            NoSuchMethodException, InvocationTargetException,
+            NoSuchMethodException,
             InstantiationException {
         List<Object> objects = new ArrayList<Object>();
         boolean findElement = false;
@@ -132,7 +137,14 @@ public class XmlDepositParser {
                         if(endElement.getName().getLocalPart().equalsIgnoreCase("deposit"))
                         {
                             validateData(depositData);
-                            objects.add(getObject(depositData));
+                            try {
+                                objects.add(getObject(depositData));
+                            } catch (ClassNotFoundException e){
+                                throw new FileFormatException("File format is invalid\n" +
+                                        "deposit type is invalid");
+                            } catch (InvocationTargetException e){
+                                throw new FileFormatException(e.getTargetException().getMessage());
+                            }
                             depositData.clear();
                         }
                         break;
@@ -142,9 +154,6 @@ public class XmlDepositParser {
             e.printStackTrace();
         } catch (XMLStreamException e) {
             e.printStackTrace();
-        }catch (ClassNotFoundException e)
-        {
-            throw new FileFormatException("file format is invalid\n deposit type is invalid");
         }
         return objects;
     }
