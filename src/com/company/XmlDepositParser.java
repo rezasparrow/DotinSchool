@@ -52,13 +52,12 @@ public class XmlDepositParser {
 
     }
 
-    private Object getObject(ArrayList<Pair<String, String>> attributes)
+    private Deposit getObject(ArrayList<Pair<String, String>> attributes)
             throws FileFormatException, ClassNotFoundException, NoSuchMethodException,
-            IllegalAccessException, InvocationTargetException, InstantiationException
-    {
+            IllegalAccessException, InvocationTargetException, InstantiationException, ArgumentOutOfBoundsException {
         BigDecimal balance = null;
         int durationInDay = 0;
-        Integer customerNumber = null;
+        String customerNumber = "";
         String depositType = "";
 
         for(Pair<String , String> attribute : attributes){
@@ -69,27 +68,24 @@ public class XmlDepositParser {
                 durationInDay = Integer.parseInt(attribute.getValue());
             }
             else if(attribute.getKey().equals("customerNumber")){
-                customerNumber = Integer.parseInt(attribute.getValue());
+                customerNumber = attribute.getValue();
             }
             else if(attribute.getKey().equals("depositType")){
                 depositType = attribute.getValue();
             }
         }
 
-        Class cls = Class.forName("com.company." + depositType + "Deposit");
-        Constructor constructor = cls.getConstructor(new Class[]{BigDecimal.class, int.class, int.class});
-
-        return constructor.newInstance(balance, durationInDay, customerNumber);
+        return new Deposit(depositType , balance, durationInDay, customerNumber);
 
     }
 
 
 
-    public List<Object> parse()
-            throws FileFormatException, IllegalAccessException ,
+    public List<Deposit> parse()
+            throws FileFormatException, IllegalAccessException,
             NoSuchMethodException,
-            InstantiationException {
-        List<Object> objects = new ArrayList<Object>();
+            InstantiationException, ArgumentOutOfBoundsException {
+        List<Deposit> objects = new ArrayList<Deposit>();
         boolean findElement = false;
         boolean startFile = false;
         boolean findStartDepositTag = false;

@@ -7,12 +7,7 @@ import java.math.BigDecimal;
 /**
  * Created by Dotin School1 on 4/4/2016.
  */
-public class ShortTermDeposit extends Deposit{
-
-
-    public ShortTermDeposit(BigDecimal balance, int durationInDay, int customerNumber) throws ArgumentOutOfBoundsException {
-        super(balance, durationInDay, customerNumber);
-    }
+public class ShortTermDeposit extends DepositType{
 
     @Override
     public float getInterestRate() {

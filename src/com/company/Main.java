@@ -1,6 +1,6 @@
 package com.company;
 
-import com.sun.deploy.util.ArrayUtil;
+
 import util.ArgumentOutOfBoundsException;
 import util.FileFormatException;
 
@@ -21,29 +21,9 @@ import java.util.List;
  */
 public class Main {
 
-    private static void sortDeposits(List<Object> deposits) {
-        Collections.sort(deposits, Collections.reverseOrder(new Comparator<Object>() {
-            @Override
-            public int compare(Object firstObject, Object secondObject) {
-                Method payedInterest = null;
-                BigDecimal profitOne = null;
-                BigDecimal profitSecond = null;
-                try {
-                    payedInterest = firstObject.getClass().getSuperclass().getDeclaredMethod("payedInterest");
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    profitOne = (BigDecimal) payedInterest.invoke(firstObject, null);
-                    profitSecond = (BigDecimal) payedInterest.invoke(secondObject, null);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-                return profitOne.compareTo(profitSecond);
-            }
-        }));
+    private static void sortDeposits(List<Deposit> deposits) {
+        Collections.sort(deposits, (Deposit first , Deposit second)-> second.compareTo(first));
+
     }
 
     public static void main(String[] args)
@@ -52,15 +32,19 @@ public class Main {
 
         XmlDepositParser  xmlDepositParser = new XmlDepositParser("input.xml");
 
-        List<Object> deposits;
+        List<Deposit> deposits = new ArrayList<>();
         try {
-            deposits = xmlDepositParser.parse();
+            try {
+                deposits = xmlDepositParser.parse();
+            } catch (ArgumentOutOfBoundsException e) {
+                e.printStackTrace();
+            }
         }catch (FileFormatException e){
             System.out.println(e.getMessage());
             return;
         }
 
-        sortDeposits(deposits);
+        Collections.sort(deposits , Collections.<Deposit>reverseOrder());
         try{
 
             File file = new File("output.txt");
@@ -69,15 +53,9 @@ public class Main {
 
             // creates a FileWriter Object
             FileWriter writer = new FileWriter(file);
-            for (Object deposit : deposits) {
-                Method payedInterest = deposit.getClass().getSuperclass().getDeclaredMethod("payedInterest");
-                BigDecimal profit = (BigDecimal) payedInterest.invoke(deposit, null);
+            for (Deposit deposit : deposits) {
 
-                Method getCustomerNumber = deposit.getClass().getSuperclass().getDeclaredMethod("getCustomerNumber");
-                Integer customerNumber = (Integer) getCustomerNumber.invoke(deposit, null);
-
-                // Writes the content to the file
-                writer.write(customerNumber + "#" + profit + "\n");
+                writer.write(deposit.getCustomerNumber() + "#" + deposit.getPayedInterest() + "\n");
 
             }
 
